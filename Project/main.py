@@ -5,6 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 
+
 #Create Config Class
 class ConfigClass(object):
     """ Flask application config """
@@ -43,70 +44,12 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 #Initialize Auth
 auth = HTTPBasicAuth()
 
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True)
-    password_hash = db.Column(db.String(64))    
-
-    def hash_password(self, password):
-        self.password_hash = pwd_context.encrypt(password)
-
-    def verify_password(self, password):
-        return pwd_context.verify(password, self.password_hash)
+from models import User
+import routes
+import authentication
 
 
-
-@auth.verify_password
-def verify_password(username, password):
-    # first try to authenticate by token
-    user = User.query.filter_by(username=username).first()
-    if user:
-        if user.verify_password(password):
-            return True
-    return False
-
-
-@app.route('/', methods=['GET'])
-def root():
-    return "FarmData"
-
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    if username is None or password is None:
-        return 'missing username or password'    # missing arguments
-    if User.query.filter_by(username=username).first() is not None:
-        return 'existing user'   # existing user
-    user = User(username=username)
-    user.hash_password(password)
-    db.session.add(user)
-    db.session.commit()
-    return 'added user'
-
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    if username is None or password is None:
-        return 'missing username or password'    # missing arguments
-    user = User.query.filter_by(username=username).first()
-    if user is not None:
-        if user.verify_password(password):
-            return 'logged in'
-        return 'no user found'
-    return 'error'
-
-@app.route('/profile')
-@auth.login_required
-def get_resource():
-    return 'username:' + auth.username()
-
-
-
-
-
+db.init_app(app)
 db.create_all()
 
 if __name__ == "__main__":
