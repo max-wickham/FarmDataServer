@@ -44,7 +44,7 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 #Initialize Auth
 auth = HTTPBasicAuth()
 
-from models import User
+from models import User, Thread
 import routes
 import authentication
 

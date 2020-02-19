@@ -2,7 +2,7 @@ from flask import Flask, abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from __main__ import app
 from __main__ import auth
-from models import User
+from models import User, Thread
 from __main__ import db
 
 @app.route('/', methods=['GET'])
@@ -13,7 +13,7 @@ def root():
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
-    email = reques.json.get('username')
+    email = request.json.get('username')
     password = request.json.get('password')
     if username is None or password is None or email is None:
         return 'missing username or password'    # missing arguments
@@ -49,7 +49,8 @@ def get_resource():
 
 
 @app.route('/usernameavailable', methods=['POST'])
-def get_username_avaialbe():
+def get_username_availabe():
+    """Check if username is available."""
     username = request.json.get('username')
     if User.query.filter_by(username=username) is not None:
         return 'available'
@@ -57,7 +58,8 @@ def get_username_avaialbe():
 
 
 @app.route('/emailavaialble', methods=['POST'])
-def ge_email_available():
+def get_email_available():
+    """Check if email is available."""
     email = request.json.get('email')
     if User.query.filter_by(email=email).first() is not None:
         return 'unavailable'
@@ -67,6 +69,7 @@ def ge_email_available():
 
 @app.route('/getthread', methods=['POST'])
 def get_thread():
+    """Returns the thread information given the thread id."""
     id = request.json.get('id')
     thread = Thread.query.filter_by(id=id).first()
     if thread is not None:
@@ -84,11 +87,83 @@ def get_thread():
 
 @app.route('/getcomments', methods=['POST'])
 def get_comments():
-    id = request.json.get('id')
-    comments = Comment.query.filter_by(thread_id=id)
+    """Returns the comments given a thread id."""
+    thread_id = request.json.get('thread_id')
+    comments = Comment.query.filter_by(thread_id=thread_id)
     for comment in comments:
         user = (User.query.filter_by(id=comment.user_id).first()).username
         if user is None:
             user = ""
         response[str(comment.id)] = [comment.description,comment.imagepath,user]
     return response   
+
+
+@app.route('/getcreatethread', methods=['POST'])
+@auth.login_required
+def get_create_thread():
+    """Creates a new thread."""
+    try:
+        title = request.json.get('title')
+        description = request.json.get('description')
+        username = request.json.get('username')
+        if title is None or description is None or username is None:
+            return "invalid"
+        if title == "" or description == "" or username == "":
+            return "invalid"
+        user = (User.query.filter_by(username=username).first()).id
+        if user is None:
+            user = 0
+        thread = Thread(title=title,description=description,image_path="",user_id = user)
+        db.session.add(thread)
+        db.session.commit()
+        return str(thread.id)
+        #
+        # return "hellop"
+    except:
+        return "error"
+
+@app.route('/getcreatecomment', methods=['POST'])
+@auth.login_required
+def get_create_comment():
+    """Creates a new comment."""
+    try:
+        thread_id = request.json.get('thread_id')
+        description = request.json.get('description')
+        username = request.json.get('username')
+        if title is None or description is None or thread is None:
+            return "invalid"
+        if title == "" or description == "" or thread == "":
+            return "invalid"
+        comment = Comment(description=description,image_path="",thread_id=thread_id)
+        db.session.add(comment)
+        db.session.commit()
+        return str(thread.id)
+    except:
+        return "error"
+
+maxlen = 100
+@app.route('/getthreadlist', methods=['POST'])
+@auth.login_required
+def get_thread_list():
+    """Returns the thread list."""
+    try:
+        username = request.json.get('username')
+        if username is None:
+            return "invalid"
+        if username == "":
+            return "invalid"  
+        user = (User.query.filter_by(username=username).first()).id
+
+        ##TODO insert algorithm to create a list of forum posts for the user
+
+        threads = Thread.query.all()
+        response = {}
+        for thread in threads:
+            username = (User.query.filter_by(id=thread.user_id).first()).username
+            if username is None:
+                username = ""
+            response[thread.id] = [thread.title,thread.description[:maxlen],username]
+        return response
+        #return "hello"
+    except:
+        return "error"

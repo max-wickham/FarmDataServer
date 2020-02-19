@@ -18,7 +18,7 @@ class User(db.Model):
     #threads written by the user links to threads table
     threads = db.relationship('Thread', backref='author', lazy='dynamic')
     #reports for the user
-    weather_reports = db.relationship('WeatherReports', backref='user', lazy='dynamic')
+    weather_reports = db.relationship('WeatherReport', backref='user', lazy='dynamic')
     livestock_reports = db.relationship('LiveStockReport', backref='user', lazy='dynamic')
     crop_reports = db.relationship('CropReport', backref='user', lazy='dynamic')
     #farminfo profile information for the user
