@@ -2,7 +2,7 @@ from flask import Flask, abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from __main__ import app
 from __main__ import auth
-from models import User, Thread
+from models import User, Thread, Comment
 from __main__ import db
 
 @app.route('/', methods=['GET'])
@@ -90,11 +90,13 @@ def get_comments():
     """Returns the comments given a thread id."""
     thread_id = request.json.get('thread_id')
     comments = Comment.query.filter_by(thread_id=thread_id)
+    response = {}
     for comment in comments:
-        user = (User.query.filter_by(id=comment.user_id).first()).username
-        if user is None:
-            user = ""
-        response[str(comment.id)] = [comment.description,comment.imagepath,user]
+        username = ""
+        user = (User.query.filter_by(id=comment.user_id).first())
+        if user is not None:
+            username = user.username
+        response[str(comment.id)] = [comment.description,username]
     return response   
 
 
@@ -130,14 +132,18 @@ def get_create_comment():
         thread_id = request.json.get('thread_id')
         description = request.json.get('description')
         username = request.json.get('username')
-        if title is None or description is None or thread is None:
+        if description is None or thread_id is None or username is None:
             return "invalid"
-        if title == "" or description == "" or thread == "":
+        if description == "" or thread_id == "" or username == "":
             return "invalid"
-        comment = Comment(description=description,image_path="",thread_id=thread_id)
+        user = (User.query.filter_by(username=username).first()).id
+        if user is None:
+            user = 0
+        comment = Comment(description=description,image_path="",thread_id=thread_id,user_id = user)
         db.session.add(comment)
         db.session.commit()
-        return str(thread.id)
+        return str(comment.id)
+        #return "hello"
     except:
         return "error"
 
