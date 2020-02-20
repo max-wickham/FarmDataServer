@@ -17,6 +17,8 @@ class User(db.Model):
     verified = db.Column(db.Boolean)
     #threads written by the user links to threads table
     threads = db.relationship('Thread', backref='author', lazy='dynamic')
+    #saved threads
+    saves = db.relationship('Save', backref='author', lazy='dynamic')
     #reports for the user
     weather_reports = db.relationship('WeatherReport', backref='user', lazy='dynamic')
     livestock_reports = db.relationship('LiveStockReport', backref='user', lazy='dynamic')
@@ -47,6 +49,7 @@ class Thread(db.Model):
     #timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     posts = db.relationship('Comment', backref='thread', lazy='dynamic')
+    saves = db.relationship('Save', backref='thread', lazy='dynamic')
 
 
 
@@ -110,3 +113,9 @@ class FarmInfoCrop(db.Model):
     size = db.Column(db.Integer, index = True) #size in km^2
     latitude = db.Column(db.Integer, index = True)
     longitude = db.Column(db.Integer, index = True)
+
+class Save(db.Model):
+    __tablename__ = 'saves'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    thread_id = db.Column(db.Integer, db.ForeignKey('threads.id'))

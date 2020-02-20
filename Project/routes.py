@@ -2,7 +2,7 @@ from flask import Flask, abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from __main__ import app
 from __main__ import auth
-from models import User, Thread, Comment
+from models import User, Thread, Comment, Save
 from __main__ import db
 
 @app.route('/', methods=['GET'])
@@ -70,8 +70,8 @@ def get_email_available():
 @app.route('/getthread', methods=['POST'])
 def get_thread():
     """Returns the thread information given the thread id."""
-    id = request.json.get('id')
-    thread = Thread.query.filter_by(id=id).first()
+    thread_id = request.json.get('thread_id')
+    thread = Thread.query.filter_by(id=int(thread_id)).first()
     if thread is not None:
         user = (User.query.filter_by(id=thread.user_id).first()).username
         if user is None:
@@ -119,8 +119,7 @@ def get_create_thread():
         db.session.add(thread)
         db.session.commit()
         return str(thread.id)
-        #
-        # return "hellop"
+        # return "hello"
     except:
         return "error"
 
@@ -139,7 +138,7 @@ def get_create_comment():
         user = (User.query.filter_by(username=username).first()).id
         if user is None:
             user = 0
-        comment = Comment(description=description,image_path="",thread_id=thread_id,user_id = user)
+        comment = Comment(description=description,image_path="",thread_id=int(thread_id),user_id = user)
         db.session.add(comment)
         db.session.commit()
         return str(comment.id)
@@ -173,3 +172,86 @@ def get_thread_list():
         #return "hello"
     except:
         return "error"
+
+
+@app.route('/getsaves', methods=['POST'])
+@auth.login_required
+def get_saves():
+    try:
+        username = request.json.get('username')
+        if username is None:
+            return "invalid"
+        if username == "":
+            return "invalid"
+        user = (User.query.filter_by(username=username).first()).id
+        if user is None:
+            user = 0
+
+        threads = []
+        saves = Save.query.filter_by(user_id = user).all()
+        for save in saves:
+            if save is not None:
+                thread = Thread.query.filter_by(thread_id = save.thread_id).first()
+                if thread is not None:
+                    threads.append(thread)
+
+        response = {}
+        for thread in threads
+            username = (User.query.filter_by(id=thread.user_id).first()).username
+            if username is None:
+                username = ""
+            response[str(thread.id)] = [thread.title,thread.description[:maxlen],username]
+
+        return response
+
+    except:
+        return 'error'
+
+
+@app.route('/getsavethread', methods=['POST'])
+@auth.login_required
+def get_save_thread:
+    try:
+        username = request.json.get('username')
+        thread_id = request.json.get('thread_id')
+        if username is None:
+            return "invalid"
+        if username == "":
+            return "invalid"
+        user = (User.query.filter_by(username=username).first()).id
+        if user is None:
+            user = 0
+        if thread_id is None:
+            return "invalid"
+        if thread_id == "":
+            return "invalid"
+        save = Save(user_id=user,thread_id=int(thread_id))
+        db.session.add(save)
+        db.session.commit()
+        return 'saved'
+    except:
+        return 'error'
+
+@app.route('/getunsavethread', methods=['POST'])
+@auth.login_required
+def get_unsave_thread:
+    try:
+        username = request.json.get('username')
+        thread_id = request.json.get('thread_id')
+        if username is None:
+            return "invalid"
+        if username == "":
+            return "invalid"
+        user = (User.query.filter_by(username=username).first()).id
+        if user is None:
+            user = 0
+        if thread_id is None:
+            return "invalid"
+        if thread_id == "":
+            return "invalid"
+        save = Save.query.filter_by(thread_id=thread_id,user_id=user)
+        db.session.delete(save)
+        db.session.commit()
+        return 'saved'
+    except:
+        return 'error'
