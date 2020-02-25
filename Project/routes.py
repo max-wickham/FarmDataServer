@@ -242,16 +242,52 @@ def get_unsave_thread:
             return "invalid"
         if username == "":
             return "invalid"
-        user = (User.query.filter_by(username=username).first()).id
-        if user is None:
-            user = 0
+        user_id = (User.query.filter_by(username=username).first()).id
+        if user_id is None:
+            return 'invalid'
         if thread_id is None:
             return "invalid"
         if thread_id == "":
             return "invalid"
-        save = Save.query.filter_by(thread_id=thread_id,user_id=user)
+        save = Save.query.filter_by(thread_id=thread_id,user_id=user_id).first()
         db.session.delete(save)
         db.session.commit()
-        return 'saved'
+        return 'unsaved'
+    except:
+        return 'error'
+
+
+@app.route('/getreport', methods=['POST'])
+@auth.login_required
+def get_report:
+    try:
+        username = request.json.get('username')
+        if username is None:
+            return "invalid"
+        if username == "":
+            return "invalid"
+        user_id = (User.query.filter_by(username=username).first()).id
+        if user_id is None:
+            return 'invalid'
+        #TODO add functionaloty to generate report
+        cropResponse = {}
+        cropReports = CropReport.query.filter_by(user_id=user_id)
+        for cropReport in cropReports:
+            cropResponse[cropReport.title] = [cropReport.warning_level,cropReport.description]
+        livestockResponse = {}
+        livestockReports = LiveStockReport.query.filter_by(user_id=user_id)
+        for livestockReport in livestockReports:
+            cropResponse[livestockReport.title] = [livestockReport.warning_level,livestockReport.description]
+        weatherResponse = {}
+        weatherReports = WeatherReport.query.filter_by(user_id=user_id)
+        for weatherReport in weatherReports:
+            cropResponse[weatherReport.title] = [weatherReport.warning_level,weatherReport.description]
+        response = {}
+        response['CropReport'] = cropResponse
+        response['LiveStockReport'] = livestockReport
+        response['WeatherReport'] = weatherReport
+        
+        return response
+
     except:
         return 'error'
