@@ -13,7 +13,7 @@ def root():
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
-    email = request.json.get('username')
+    email = request.json.get('email')
     password = request.json.get('password')
     if username is None or password is None or email is None:
         return 'missing username or password'    # missing arguments
@@ -25,11 +25,11 @@ def register():
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return 'added_user'
+    return 'added user'
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.json.get('username')
+    username = auth.username()
     password = request.json.get('password')
     if username is None or password is None:
         return 'missing_username_or_password'    # missing arguments
@@ -57,7 +57,7 @@ def get_username_availabe():
     return 'unavailable'
 
 
-@app.route('/emailavaialble', methods=['POST'])
+@app.route('/emailavailable', methods=['POST'])
 def get_email_available():
     """Check if email is available."""
     email = request.json.get('email')
@@ -69,7 +69,7 @@ def get_email_available():
 
 @app.route('/getreport', methods=['POST'])
 @auth.login_required
-def get_report:
+def get_report():
     """Returns the report list"""
     try:
         username = request.json.get('username')
@@ -88,17 +88,28 @@ def get_report:
         livestockResponse = {}
         livestockReports = LiveStockReport.query.filter_by(user_id=user_id)
         for livestockReport in livestockReports:
-            cropResponse[livestockReport.title] = [livestockReport.warning_level,livestockReport.description]
+            livestockResponse[livestockReport.title] = [livestockReport.warning_level,livestockReport.description]
         weatherResponse = {}
         weatherReports = WeatherReport.query.filter_by(user_id=user_id)
         for weatherReport in weatherReports:
-            cropResponse[weatherReport.title] = [weatherReport.warning_level,weatherReport.description]
+            weatherResponse[weatherReport.title] = [weatherReport.warning_level,weatherReport.description]
         response = {}
         response['CropReport'] = cropResponse
-        response['LiveStockReport'] = livestockReport
-        response['WeatherReport'] = weatherReport
+        response['LiveStockReport'] = livestockResponse
+        response['WeatherReport'] = weatherResponse
         
         return response
 
     except:
         return 'error'
+
+
+@app.route('/getprofile', methods=['POST'])
+@auth.login_required
+def get_profile():
+    return 'unimplemented'
+
+@app.route('/getaddpofile', methods=['POST'])
+@auth.login_required
+def get_add_profile():
+    return 'unimplemented'

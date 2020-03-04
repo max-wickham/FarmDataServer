@@ -46,6 +46,7 @@ auth = HTTPBasicAuth()
 
 from models import User, Thread
 import routes
+import forum_routes
 import authentication
 
 
@@ -53,4 +54,5 @@ db.init_app(app)
 db.create_all()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host = "0.0.0.0")
+    #app.run(debug=True)
