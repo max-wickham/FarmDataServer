@@ -46,6 +46,7 @@ def get_create_thread():
     try:
         title = request.json.get('title')
         description = request.json.get('description')
+        file = request.files["image"]
         username = auth.username()
         if title is None or description is None or username is None:
             return "invalid"
@@ -86,7 +87,7 @@ def get_create_comment():
         return "error"
 
 maxlen = 100 #maximum length of forum description in list form
-@app.route('/getthreadlist', methods=['GET'])
+@app.route('/getthreadlist', methods=['POST'])
 @auth.login_required
 def get_thread_list():
     """Returns the thread list."""
@@ -113,7 +114,7 @@ def get_thread_list():
         return "invalid"
 
 
-@app.route('/getsaves', methods=['GET'])
+@app.route('/getsaves', methods=['POST'])
 @auth.login_required
 def get_saves():
     """Returns the saves given the username"""

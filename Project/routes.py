@@ -67,7 +67,7 @@ def get_email_available():
 
 
 
-@app.route('/getreport', methods=['GET'])
+@app.route('/getreport', methods=['POST'])
 @auth.login_required
 def get_report():
     """Returns the report list"""
@@ -114,3 +114,14 @@ def get_profile():
 @auth.login_required
 def get_add_profile():
     return 'unimplemented'
+
+
+@app.route('/testimage', methods=['POST'])
+def get_testimage():
+    imageBytes = request.files.get('image')
+    reply = eval(request.form.get('json'))
+    print(type(reply))
+    if(reply is not None):
+        return "success"
+    
+    return "fail"
