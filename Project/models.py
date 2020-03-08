@@ -25,7 +25,7 @@ class User(db.Model):
     crop_reports = db.relationship('CropReport', backref='user', lazy='dynamic')
     #farminfo profile information for the user
     farminfo_livestocks = db.relationship('FarmInfoLiveStock', backref='user', lazy='dynamic')
-    farminfo_lcrops = db.relationship('FarmInfoCrop', backref='user', lazy='dynamic')
+    farminfo_crops = db.relationship('FarmInfoCrop', backref='user', lazy='dynamic')
 
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
@@ -70,7 +70,7 @@ class WeatherReport(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     title = db.Column(db.String(64), index=True)
     #timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    warning_level = db.Column(db.Integer, index = True) #Warning level from 0 to 10
+    warning_level = db.Column(db.String(64), index = True) #Warning level from 0 to 10
     description = db.Column(db.String(240), index=True)
     
 
@@ -80,8 +80,9 @@ class LiveStockReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     title = db.Column(db.String(64), index=True)
+    problem = db.Column(db.String(64), index=True)
     #timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    warning_level = db.Column(db.Integer, index = True) #Warning level from 0 to 10
+    warning_level = db.Column(db.String(64), index = True) #Warning level from 0 to 10
     description = db.Column(db.String(240), index=True)
 
 class CropReport(db.Model):
@@ -89,8 +90,9 @@ class CropReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     title = db.Column(db.String(64), index=True)
+    problem = db.Column(db.String(64), index=True)
     #timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    warning_level = db.Column(db.Integer, index = True) #Warning level from 0 to 10
+    warning_level = db.Column(db.String(64), index = True) #Warning level from 0 to 10
     description = db.Column(db.String(240), index=True)
 
 

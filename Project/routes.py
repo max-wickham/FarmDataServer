@@ -2,7 +2,7 @@ from flask import Flask, abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from __main__ import app
 from __main__ import auth
-from models import User, Thread, Comment, Save
+from models import User, CropReport, LiveStockReport, WeatherReport
 from __main__ import db
 
 @app.route('/', methods=['GET'])
@@ -67,12 +67,12 @@ def get_email_available():
 
 
 
-@app.route('/getreport', methods=['POST'])
+@app.route('/getreport', methods=['GET'])
 @auth.login_required
 def get_report():
     """Returns the report list"""
     try:
-        username = request.json.get('username')
+        username = auth.username()
         if username is None:
             return "invalid"
         if username == "":
@@ -81,23 +81,24 @@ def get_report():
         if user_id is None:
             return 'invalid'
         #TODO add functionaloty to generate report
-        cropResponse = {}
-        cropReports = CropReport.query.filter_by(user_id=user_id)
-        for cropReport in cropReports:
-            cropResponse[cropReport.title] = [cropReport.warning_level,cropReport.description]
-        livestockResponse = {}
-        livestockReports = LiveStockReport.query.filter_by(user_id=user_id)
-        for livestockReport in livestockReports:
-            livestockResponse[livestockReport.title] = [livestockReport.warning_level,livestockReport.description]
-        weatherResponse = {}
-        weatherReports = WeatherReport.query.filter_by(user_id=user_id)
-        for weatherReport in weatherReports:
-            weatherResponse[weatherReport.title] = [weatherReport.warning_level,weatherReport.description]
+        #return str(user_id)
         response = {}
-        response['CropReport'] = cropResponse
-        response['LiveStockReport'] = livestockResponse
-        response['WeatherReport'] = weatherResponse
-        
+        #crop = CropReport(title="test",warning_level="test",description="description",problem="problem",user_id=user_id)
+        #db.session.add(crop)
+        #db.session.commit()
+        cropReports = CropReport.query.filter_by(user_id=user_id).all()
+        for cropReport in cropReports:
+            response["crop"] = {"crop":cropReport.title,"problem":cropReport.problem,"warning":cropReport.warning_level,"description":cropReport.description}
+        livestockReports = LiveStockReport.query.filter_by(user_id=user_id).all()
+        for livestockReport in livestockReports:
+            response["crop"] = {"crop":livestockReport.title,"problem":livestockReport.problem,
+            "warning":livestockReport.warning_level,"description":livestockReport.description}
+        weatherReports = WeatherReport.query.filter_by(user_id=user_id).all()
+        for weatherReport in weatherReports:
+            response["weather"] = {"weather":weatherReport.title,"problem":weatherReport.problem,
+            "warning":weatherReport.warning_level,"description":weatherReport.description}  
+        if response == {}:
+            return "empty"
         return response
 
     except:
@@ -109,7 +110,7 @@ def get_report():
 def get_profile():
     return 'unimplemented'
 
-@app.route('/getaddpofile', methods=['POST'])
+@app.route('/getaddprofile', methods=['POST'])
 @auth.login_required
 def get_add_profile():
     return 'unimplemented'
